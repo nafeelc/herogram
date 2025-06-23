@@ -1255,7 +1255,7 @@ function showPromptDetails(painting, referenceDataMap) {
     promptSummary.textContent = painting.summary || 'No summary available';
     promptTitle.textContent = painting.title_text || 'No title available';
     promptInstructions.textContent = painting.title_instructions || 'No instructions available';
-    promptContext.textContent = painting.context ? JSON.stringify(painting.context) : 'No context available';
+    promptContext.textContent = painting.context ? JSON.stringify(painting.context) : 'Context not available';
 
     // Set reference count and thumbnails
     const usedReferenceIds = painting.used_reference_ids ? JSON.parse(painting.used_reference_ids) : [];
