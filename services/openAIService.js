@@ -44,6 +44,7 @@ async function generateImage(ideaId, prompt, references = []) {
     console.log(`Updated status to processing for idea ${ideaId}`);
 
     let response;
+    let contextUsed = {}
     
     if (references && references.length > 0) {
       console.log(`Using ${references.length} reference images for edits endpoint`);
@@ -53,6 +54,14 @@ async function generateImage(ideaId, prompt, references = []) {
       formData.append('prompt', prompt);
       formData.append('size', '1536x1024');
       formData.append('quality', 'high');
+
+      contextUsed = {
+        model: 'gpt-image-1',
+        prompt: prompt,
+        size: '1536x1024',
+        quality: 'high',
+        referenceImages: references.length
+      }
       
       // Add reference images
       for (const ref of references) {
@@ -88,6 +97,9 @@ async function generateImage(ideaId, prompt, references = []) {
           maxBodyLength: Infinity
         });
         console.log('OpenAI edits response received');
+                  await pool.execute(
+    'UPDATE paintings SET context = ? WHERE idea_id = ?',
+    [contextUsed, ideaId]);
       } catch (error) {
         console.error('OpenAI edits API error:');
         if (error.response) {
@@ -120,6 +132,14 @@ async function generateImage(ideaId, prompt, references = []) {
           quality: 'high',
           size: '1536x1024'
         };
+
+       contextUsed = {
+        model: 'gpt-image-1',
+        prompt: prompt,
+        size: '1536x1024',
+        quality: 'high',
+      }
+
         console.log('Making request to OpenAI generations endpoint with payload:', JSON.stringify(requestBody, null, 2));
         
         response = await axios.post('https://api.openai.com/v1/images/generations', requestBody, {
@@ -129,6 +149,11 @@ async function generateImage(ideaId, prompt, references = []) {
           }
         });
         console.log('OpenAI generations response received');
+          await pool.execute(
+    'UPDATE paintings SET context = ? WHERE idea_id = ?',
+    [contextUsed, ideaId]
+  );
+
       } catch (error) {
         console.error('OpenAI generations API error:');
         if (error.response) {

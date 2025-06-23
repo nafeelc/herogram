@@ -252,6 +252,7 @@ async function getPaintings(req, res) {
         p.id, p.title_id, p.idea_id, p.image_url, p.status,
         p.error_message, p.used_reference_ids, p.generation_order,
         p.created_at, p.updated_at,
+        p.context,
         i.summary, i.full_prompt as fullPrompt,
         t.title as title_text, t.instructions as title_instructions
       FROM paintings p
