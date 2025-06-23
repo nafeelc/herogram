@@ -6,57 +6,41 @@ let api = null;
 
 // Fetch server configuration and initialize the API
 const initAPI = async () => {
+  const createAxiosInstance = (baseURL) => {
+    const instance = axios.create({
+      baseURL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 300000, // 5-minute timeout for longer server processing
+    });
+
+    // Add auth token to requests if available
+    instance.interceptors.request.use((config) => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+
+    return instance;
+  };
+
+  const initializeAPI = (serverIP, apiPort) => {
+    const baseURL = `http://${serverIP}:${apiPort}/api`;
+    api = createAxiosInstance(baseURL);
+  };
+
   try {
-    // Use the current origin to get the config (for local development, we might need to adjust this)
     const configResponse = await axios.get('/api/config');
     const { serverIP, apiPort } = configResponse.data;
-    API_URL = `http://${serverIP}:${apiPort}/api`;
-    
-    // Create axios instance with auth token
-    api = axios.create({
-      baseURL: API_URL,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      timeout: 10000 // Add timeout to avoid long waits on network issues
-    });
-
-    // Add auth token to requests if available
-    api.interceptors.request.use(config => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
-    
-    return true;
+    initializeAPI(serverIP, apiPort);
   } catch (error) {
-    console.error('Failed to fetch server configuration, using default', error);
-    
-    // Fallback to using the current hostname instead of hardcoded IP
-    const currentHostname = window.location.hostname;
-    API_URL = `http://${currentHostname}:3000/api`;
-    
-    // Create axios instance with auth token
-    api = axios.create({
-      baseURL: API_URL,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      timeout: 10000
-    });
-
-    // Add auth token to requests if available
-    api.interceptors.request.use(config => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-      return config;
-    });
-    
-    return false;
+    console.error('Failed to fetch server configuration, using default settings:', error);
+    const defaultServerIP = window.location.hostname;
+    const defaultApiPort = 3000;
+    initializeAPI(defaultServerIP, defaultApiPort);
   }
 };
 
