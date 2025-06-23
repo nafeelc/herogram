@@ -1246,7 +1246,8 @@ function showPromptDetails(painting, referenceDataMap) {
     const referenceCount = document.getElementById('reference-count');
     const referenceThumbnails = document.getElementById('reference-thumbnails');
     const fullPrompt = document.getElementById('full-prompt');
-    const promptContext = document.getElementById('context-details');
+    const imageContext = document.getElementById('context-details');
+    const promptContext = document.getElementById('prompt_context');
 
 
     // Set modal content
@@ -1255,7 +1256,8 @@ function showPromptDetails(painting, referenceDataMap) {
     promptSummary.textContent = painting.summary || 'No summary available';
     promptTitle.textContent = painting.title_text || 'No title available';
     promptInstructions.textContent = painting.title_instructions || 'No instructions available';
-    promptContext.textContent = painting.context ? JSON.stringify(painting.context) : 'Context not available';
+    imageContext.textContent = painting.context ? JSON.stringify(painting.context) : 'Context not available';
+    promptContext.textContent = painting.prompt_context ? JSON.stringify(painting.prompt_context) : 'Prompt context not available';
 
     // Set reference count and thumbnails
     const usedReferenceIds = painting.used_reference_ids ? JSON.parse(painting.used_reference_ids) : [];

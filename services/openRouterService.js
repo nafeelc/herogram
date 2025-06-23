@@ -84,6 +84,13 @@ async function generateIdeas(titleId, titleText, instructions, previousIdeas = [
       params
     );
 
+    const contextUsed = {
+      titleId,
+      titleText,
+      instructions: instructions || 'No custom instructions provided',
+      model: 'google/gemini-2.5-pro-preview',
+    };
+
     const idea = {
       id: result.insertId,
       titleId,
@@ -91,7 +98,7 @@ async function generateIdeas(titleId, titleText, instructions, previousIdeas = [
       fullPrompt: ideaData.fullPrompt
     };
 
-    return idea;
+    return {idea, contextUsed};
   } catch (error) {
     console.error('Error generating ideas:', error);
     throw error;
