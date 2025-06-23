@@ -263,28 +263,60 @@ async function getPaintings(req, res) {
 
     const [paintings] = await pool.execute(paintingQuery, [titleId]);
 
-    // Get reference data if needed
     const referenceIds = paintings
-      .map(p => p.used_reference_ids)
-      .filter(ids => ids)
-      .flatMap(ids => ids.split(','))
-      .filter((id, index, self) => self.indexOf(id) === index);
-
-    const referenceDataMap = {};
-    if (referenceIds.length > 0) {
-      const [references] = await pool.execute(
-        'SELECT id, image_data FROM references2 WHERE id IN (?)',
-        [referenceIds]
-      );
-      references.forEach(ref => {
-        referenceDataMap[ref.id] = ref.image_data;
-      });
+  .map(p => {
+    try {
+      return JSON.parse(p.used_reference_ids); // Parse the stringified array
+    } catch (error) {
+      console.error('Error parsing used_reference_ids:', error);
+      return [];
     }
+  })
+  .flat() // Flatten the array of arrays
+  .filter((id, index, self) => self.indexOf(id) === index); // Remove duplicates
 
-    res.status(200).json({
-      paintings,
-      referenceDataMap
-    });
+  console.log('Reference IDs:', referenceIds);
+
+const referenceDataMap = {};
+if (referenceIds.length > 0) {
+  const [references] = await pool.execute(
+    `SELECT id, image_data FROM references2 WHERE id IN (${referenceIds.map(() => '?').join(',')})`,
+    referenceIds
+  );
+
+  console.log('References found:', references);
+  references.forEach(ref => {
+    referenceDataMap[ref.id] = ref.image_data;
+  });
+}
+
+res.status(200).json({
+  paintings,
+  referenceDataMap
+});
+
+    // // Get reference data if needed
+    // const referenceIds = paintings
+    //   .map(p => p.used_reference_ids)
+    //   .filter(ids => ids)
+    //   .flatMap(ids => ids.split(','))
+    //   .filter((id, index, self) => self.indexOf(id) === index);
+
+    // const referenceDataMap = {};
+    // if (referenceIds.length > 0) {
+    //   const [references] = await pool.execute(
+    //     `SELECT id, image_data FROM references2 WHERE id IN (${referenceIds.map(() => '?').join(',')})`,
+    //     referenceIds
+    //   );
+    //   references.forEach(ref => {
+    //     referenceDataMap[ref.id] = ref.image_data;
+    //   });
+    // }
+
+    // res.status(200).json({
+    //   paintings,
+    //   referenceDataMap
+    // });
 
   } catch (error) {
     console.error('Error in getPaintings:', error);
@@ -297,4 +329,4 @@ async function getPaintings(req, res) {
 module.exports = {
   generatePaintings,
   getPaintings,
-}; 
+};
